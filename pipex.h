@@ -23,11 +23,13 @@
 
 // Function prototypes
 
-void	error_exit(const char *message);
+void	error_exit(const char *message, int number);
 char	*get_command_path(char *cmd, char **envp);
 void	ft_free_split(char **str);
 void	run_command(char *cmd, char **envp);
 void	child_process(int *fd, char **av, char **envp);
+void	parent_process(int *fd, char **av, char **envp);
+void	parsing_envp(char **envp);
 
 
 

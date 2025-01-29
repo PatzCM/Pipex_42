@@ -12,10 +12,10 @@
 
 #include "pipex.h"
 
-void	error_exit(const char *message)
+void	error_exit(const char *message, int number)
 {
 	ft_printf("%s\n", message);
-	exit(1);
+	exit(number);
 }
 
 char	*get_command_path(char *cmd, char **envp)
@@ -31,7 +31,7 @@ char	*get_command_path(char *cmd, char **envp)
 		ft_printf("first path: %s\n", path[i]);
 		char *tmp = ft_strjoin(path[i], "/");
 		char *cmd_path = ft_strjoin(tmp, cmd);
-		free(tmp);
+		/*free(tmp);*/
 		if (access(cmd_path, F_OK) == 0)
 		{
 			ft_free_split(path);
@@ -41,7 +41,7 @@ char	*get_command_path(char *cmd, char **envp)
 		i++;
 	}
 	ft_free_split(path);
-	error_exit("Error: Command not found");
+	error_exit("Error: Command not found", 127);
 	return (NULL);
 }
 
@@ -58,11 +58,18 @@ void	ft_free_split(char **str)
 
 void	run_command(char *cmd, char **envp)
 {
-	char *cmd_path = get_command_path(cmd, envp);
-	char **cmd_args = ft_split(cmd_path, ' ');
-	ft_printf("cmd_path: %s\n", cmd_path);
-	if (execv(cmd_path, cmd_args) == -1)
-		error_exit("Error: Exec failed");
+	char **cmd_args; 
+	char *cmd_path; 
+	
+	cmd_args = ft_split(cmd, ' ');
+	cmd_path = get_command_path(cmd_args[0], envp);
+	if (cmd_path == NULL)
+	{
+		ft_free_split(cmd_args);
+		error_exit("Error: Command not found", 127);
+	}
+	if (execve(cmd_path, cmd_args, envp) == -1)
+		error_exit("Error: Exec failed", 0);
 	ft_free_split(cmd_args);
 	
 }
