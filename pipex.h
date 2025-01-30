@@ -20,6 +20,13 @@
 # include <sys/stat.h>
 # include <signal.h>
 
+typedef struct s_pipex
+{
+	char	*cmd;
+	char	**path;
+	char	*cmd_path;
+	char	**cmd_args;
+}	t_pipex;
 
 // Function prototypes
 
@@ -27,10 +34,8 @@ void	error_exit(const char *message, int number);
 char	*get_command_path(char *cmd, char **envp);
 void	ft_free_split(char **str);
 void	run_command(char *cmd, char **envp);
-void	child_process(int *fd, char **av, char **envp);
+void	redirect_process(char *file, char *cmd, char **envp);
 void	parent_process(int *fd, char **av, char **envp);
-void	parsing_envp(char **envp);
-
-
+void	parse(int result, char *msg);
 
 #endif

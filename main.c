@@ -15,61 +15,65 @@
 int	main(int ac, char **av, char **envp)
 {
 	int fd[2];
-	pid_t pid;
 
-	parsing_envp(envp);
-	if (ac != 5)
-		error_exit("Error: Wrong number of arguments", 1);
-	if (pipe(fd) == -1)
-		error_exit("Error: Pipe failed", 1);
-	pid = fork();
-	if (pid == -1)
-		error_exit("Error: Fork failed", 1);
-	if (pid == 0)
-		child_process(fd, av, envp);
-	waitpid(pid, NULL, 0);
-	parent_process(fd, av, envp);
-}
-
-void	child_process(int *fd, char **av, char **envp)
-{
-	int fd_in;
-
-	fd_in = open(av[1], O_RDONLY, 0777);
-	if (fd_in == -1)
-		error_exit("Error: File 1 not found", 0);
-	dup2(fd[1], STDOUT_FILENO);
-	dup2(fd_in, STDIN_FILENO);
-	close(fd[0]);
-	run_command(av[2], envp);	
-}
-
-void	parent_process(int *fd, char **av, char **envp)
-{
-	int fd_out;
-
-	fd_out = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	if (fd_out == -1)
-		error_exit("Error: File 2 not found", 0);
-	dup2(fd[0], STDIN_FILENO);
-	dup2(fd_out, STDOUT_FILENO);
-	close(fd[1]);
-	run_command(av[3], envp);
-}
-
-void	parsing_envp(char **envp)
-{
-	int i = -1;
-	int result;
-
-	i = -1;
-	result = 0;
-
-	while (envp[++i])
+	/*t_pipex *pipex;*/
+	/*pipex = malloc(sizeof(t_pipex));*/
+	/*if (!pipex)*/
+	/*{*/
+	/*	free(pipex);*/
+	/*	error_exit("Error: Malloc failed", 1, pipex);*/
+	/*}*/
+	if (ac == 5)
 	{
-	if (!ft_strnstr(envp[i], "PATH=", 5) && envp[i][6])
-			result = 1;
+		fd[0] = open(av[1], O_RDONLY, 0777);
+		dup2(fd[0], STDIN_FILENO);
+		redirect_process(av[1], av[2], envp);
+		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		parse(fd[1], "Error: File 2 not found");
+		dup2(fd[1], STDOUT_FILENO);
+		run_command(av[3], envp);
 	}
-	if	(result != 1)
-		error_exit("Error: PATH not found in envp", 1);
+}
+
+void	redirect_process(char *file, char *cmd, char **envp)
+{
+	pid_t pid;
+	int fd[2];
+
+	parse(pipe(fd), "Error: Pipe");
+	pid = fork();
+	if (pid)
+	{
+		dup2(fd[0], STDIN_FILENO);
+		close(fd[1]);
+		waitpid(pid, NULL, 0);
+	}
+	else
+	{
+		parse(access(file, F_OK), file);
+		dup2(fd[1], STDOUT_FILENO);
+		run_command(cmd, envp);
+	}
+}
+
+/*void	parent_process(int *fd, char **av, char **envp, t_pipex *pipex)*/
+/*{*/
+/*	int fd_out;*/
+/*	fd_out = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);*/
+/*	if (fd_out == -1)*/
+/*		error_exit("Error: File 2 not found", 0, pipex);*/
+/*	dup2(fd[0], STDIN_FILENO);*/
+/*	dup2(fd_out, STDOUT_FILENO);*/
+/*	close(fd[1]);*/
+/*	run_command(av[3], envp, pipex);*/
+/*}*/
+
+void	parse(int result, char *msg)
+{
+	if (result == -1)
+	{
+		ft_putstr_fd("Error: ", STDERR_FILENO);
+		perror(msg);
+		exit(EXIT_FAILURE);
+	}
 }
