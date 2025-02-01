@@ -16,13 +16,6 @@ int	main(int ac, char **av, char **envp)
 {
 	int fd[2];
 
-	/*t_pipex *pipex;*/
-	/*pipex = malloc(sizeof(t_pipex));*/
-	/*if (!pipex)*/
-	/*{*/
-	/*	free(pipex);*/
-	/*	error_exit("Error: Malloc failed", 1, pipex);*/
-	/*}*/
 	if (ac == 5)
 	{
 		fd[0] = open(av[1], O_RDONLY, 0777);
@@ -33,6 +26,12 @@ int	main(int ac, char **av, char **envp)
 		dup2(fd[1], STDOUT_FILENO);
 		run_command(av[3], envp);
 	}
+	else
+	{
+		ft_putstr_fd("Error: Invalid number of arguments\n", STDERR_FILENO);
+		exit(EXIT_FAILURE);
+	}
+	
 }
 
 void	redirect_process(char *file, char *cmd, char **envp)
@@ -42,6 +41,7 @@ void	redirect_process(char *file, char *cmd, char **envp)
 
 	parse(pipe(fd), "Error: Pipe");
 	pid = fork();
+	printf("pid: %d\n", pid);
 	if (pid)
 	{
 		dup2(fd[0], STDIN_FILENO);

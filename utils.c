@@ -14,7 +14,7 @@
 
 void	error_exit(const char *message, int number)
 {
-	ft_printf("%s\n", message);
+	perror(message);
 	exit(number);
 }
 
@@ -23,22 +23,22 @@ char	*get_command_path(char *cmd, char **envp)
 	int		i;
 	char	*tmp;
 	char	*path;
+	char	**cmd_paths;
 
 	i = 0;
 	while (!ft_strnstr(envp[i], "PATH=", 5))
 		i++;
-	envp[i] += 5;
-	while (*envp[i])
+	cmd_paths = ft_split(envp[i] + 5, ':');
+	i = 0;
+	while (cmd_paths[i])
 	{
-		path = ft_strjoin(envp[i], "/");
+		path = ft_strjoin(cmd_paths[i], "/");
 		tmp = ft_strjoin(path, cmd);
 		if (!access(tmp, F_OK))
 		{
-			free(path);
-			return (tmp);
+			free(tmp);
+			return (NULL);
 		}
-		free(path);
-		free(tmp);
 		i++;
 	}
 	return (cmd);
@@ -67,8 +67,12 @@ void	run_command(char *cmd, char **envp)
 	{
 		error_exit("Error: Command not found", 127);
 	}
-	execve(cmd_path, path, envp);
+	if (execve(cmd_path, path, envp) == -1)
+	{
+		free(cmd_path);
+		ft_free_split(path);
+		error_exit("Error", 127);
+	}
 	dup2(STDERR_FILENO, STDOUT_FILENO);
-	free(path);
 	exit(127);
 }

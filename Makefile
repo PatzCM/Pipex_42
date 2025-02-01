@@ -73,7 +73,7 @@ all: deps $(NAME)
 	@echo	"$(GREEN)$ Dependencies done! \n $(PURPLE)$$HEADER $(NO_COLOR)"
 
 deps:
-	@make -C ./libs/libft
+	@make -C libs/libft
 
 $(NAME): $(OBJS)
 	@$(CC) $(CFLAGS) $(INCLUDES) $(OBJS) $(LIBS) -o $(NAME)
