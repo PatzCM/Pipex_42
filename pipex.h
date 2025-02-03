@@ -34,8 +34,7 @@ void	error_exit(const char *message, int number);
 char	*get_command_path(char *cmd, char **envp);
 void	ft_free_split(char **str);
 void	run_command(char *cmd, char **envp);
-void	redirect_process(char *file, char *cmd, char **envp);
-void	parent_process(int *fd, char **av, char **envp);
-void	parse(int result, char *msg);
-
+void	redirect_process(char **av, char **envp, int *fd, int *pipex);
+void	second_process(char **av, char **envp, int *fd, int *pipex);
+int		parsing(char **argv);
 #endif

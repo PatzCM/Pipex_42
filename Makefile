@@ -96,4 +96,7 @@ norminette:
 	@norminette $(SRCDIR) $(INCLUDES)
 	@echo "$(GREEN)Norminette done$(RESET)"
 
+valgrind:
+	@valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all --track-origins=yes
+
 .PHONY: all clean fclean re header norminette

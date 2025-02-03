@@ -11,69 +11,75 @@
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include <fcntl.h>
 
 int	main(int ac, char **av, char **envp)
 {
 	int fd[2];
+	int pipex[2];
 
 	if (ac == 5)
 	{
-		fd[0] = open(av[1], O_RDONLY, 0777);
-		dup2(fd[0], STDIN_FILENO);
-		redirect_process(av[1], av[2], envp);
-		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-		parse(fd[1], "Error: File 2 not found");
-		dup2(fd[1], STDOUT_FILENO);
-		run_command(av[3], envp);
+	fd[0] = open(av[1], O_RDONLY);	
+	fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	if(parsing(av) == -1)
+		exit(EXIT_FAILURE);
+	pipe(pipex);
+	redirect_process(av, envp, fd, pipex);
+	second_process(av, envp, fd, pipex);
 	}
 	else
 	{
 		ft_putstr_fd("Error: Invalid number of arguments\n", STDERR_FILENO);
 		exit(EXIT_FAILURE);
 	}
+	wait(NULL);
+	wait(NULL);
 	
 }
 
-void	redirect_process(char *file, char *cmd, char **envp)
+void	redirect_process(char **av, char **envp, int *fd, int *pipex)
 {
 	pid_t pid;
-	int fd[2];
-
-	parse(pipe(fd), "Error: Pipe");
 	pid = fork();
-	printf("pid: %d\n", pid);
 	if (pid)
 	{
-		dup2(fd[0], STDIN_FILENO);
 		close(fd[1]);
-		waitpid(pid, NULL, 0);
+		close(pipex[0]);
+		dup2(fd[0], 0);
+		dup2(pipex[1], 1);
+		run_command(av[2], envp);
 	}
 	else
 	{
-		parse(access(file, F_OK), file);
-		dup2(fd[1], STDOUT_FILENO);
-		run_command(cmd, envp);
+		waitpid(pid, NULL, 0);
 	}
 }
-
-/*void	parent_process(int *fd, char **av, char **envp, t_pipex *pipex)*/
-/*{*/
-/*	int fd_out;*/
-/*	fd_out = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);*/
-/*	if (fd_out == -1)*/
-/*		error_exit("Error: File 2 not found", 0, pipex);*/
-/*	dup2(fd[0], STDIN_FILENO);*/
-/*	dup2(fd_out, STDOUT_FILENO);*/
-/*	close(fd[1]);*/
-/*	run_command(av[3], envp, pipex);*/
-/*}*/
-
-void	parse(int result, char *msg)
+void	second_process(char **av, char **envp, int *fd, int *pipex)
 {
-	if (result == -1)
+	pid_t pid;
+	pid = fork();
+	if (pid)
 	{
-		ft_putstr_fd("Error: ", STDERR_FILENO);
-		perror(msg);
-		exit(EXIT_FAILURE);
+		close(fd[0]);
+		close(pipex[1]);
+		dup2(pipex[0], 0);
+		dup2(fd[1], 1);
+		run_command(av[3], envp);
 	}
 }
+
+int	parsing(char **argv)
+{
+		if (access(argv[1], F_OK) == -1)
+		{
+			ft_putstr_fd("Error: File does not exist\n", 2);
+			return (-1);
+		}
+		if (access(argv[4], W_OK) == -1)
+		{
+			ft_putstr_fd("Error: File is not readable\n", 2);
+			return (-1);
+		}
+	return (0);
+}	

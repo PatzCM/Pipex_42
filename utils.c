@@ -36,12 +36,16 @@ char	*get_command_path(char *cmd, char **envp)
 		tmp = ft_strjoin(path, cmd);
 		if (!access(tmp, F_OK))
 		{
-			free(tmp);
-			return (NULL);
+			ft_free_split(cmd_paths);
+			free(path);
+			return (tmp);
 		}
+		free(path);
+		free(tmp);
 		i++;
 	}
-	return (cmd);
+	ft_free_split(cmd_paths);
+	return (NULL);
 }
 void	ft_free_split(char **str)
 {
@@ -63,8 +67,10 @@ void	run_command(char *cmd, char **envp)
 
 	path = ft_split(cmd, ' ');
 	cmd_path = get_command_path(path[0], envp);
-	if (!cmd_path)
+	if (cmd_path == NULL)
 	{
+		free(cmd_path);
+		ft_free_split(path);
 		error_exit("Error: Command not found", 127);
 	}
 	if (execve(cmd_path, path, envp) == -1)
@@ -73,6 +79,7 @@ void	run_command(char *cmd, char **envp)
 		ft_free_split(path);
 		error_exit("Error", 127);
 	}
-	dup2(STDERR_FILENO, STDOUT_FILENO);
-	exit(127);
+	free(cmd_path);
+	ft_free_split(path);
+	exit(0);
 }
