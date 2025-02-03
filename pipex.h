@@ -36,5 +36,5 @@ void	ft_free_split(char **str);
 void	run_command(char *cmd, char **envp);
 void	redirect_process(char **av, char **envp, int *fd, int *pipex);
 void	second_process(char **av, char **envp, int *fd, int *pipex);
-int		parsing(char **argv);
+int		parsing(char **argv, char **envp);
 #endif

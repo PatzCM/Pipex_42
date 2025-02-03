@@ -20,13 +20,16 @@ int	main(int ac, char **av, char **envp)
 
 	if (ac == 5)
 	{
-	fd[0] = open(av[1], O_RDONLY);	
-	fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	if(parsing(av) == -1)
+		fd[0] = open(av[1], O_RDONLY);	
+		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+			if (parsing(av, envp) == -1)
+	{
+		printf("Error: Parsing failed\n");
 		exit(EXIT_FAILURE);
-	pipe(pipex);
-	redirect_process(av, envp, fd, pipex);
-	second_process(av, envp, fd, pipex);
+	}
+		pipe(pipex);
+		redirect_process(av, envp, fd, pipex);
+		second_process(av, envp, fd, pipex);
 	}
 	else
 	{
@@ -69,8 +72,21 @@ void	second_process(char **av, char **envp, int *fd, int *pipex)
 	}
 }
 
-int	parsing(char **argv)
+int	parsing(char **argv, char **envp)
 {
+	char	*tmp;
+	int		i;
+	i = 2;
+	while (i <= 3)
+	{
+		if ((tmp = get_command_path(argv[2], envp)) == NULL)
+		{
+			free(tmp);
+			return((ft_putstr_fd("Error: Command not found\n", 2), -1));
+		}
+		free(tmp);
+		i++;
+	}
 		if (access(argv[1], F_OK) == -1)
 		{
 			ft_putstr_fd("Error: File does not exist\n", 2);

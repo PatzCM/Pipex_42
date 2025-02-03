@@ -36,8 +36,8 @@ char	*get_command_path(char *cmd, char **envp)
 		tmp = ft_strjoin(path, cmd);
 		if (!access(tmp, F_OK))
 		{
-			ft_free_split(cmd_paths);
 			free(path);
+			ft_free_split(cmd_paths);
 			return (tmp);
 		}
 		free(path);
