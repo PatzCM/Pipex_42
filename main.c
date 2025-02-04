@@ -15,18 +15,17 @@
 
 int	main(int ac, char **av, char **envp)
 {
-	int fd[2];
-	int pipex[2];
+	int	fd[2];
+	int	pipex[2];
 
 	if (ac == 5)
 	{
-		fd[0] = open(av[1], O_RDONLY);	
+		fd[0] = open(av[1], O_RDONLY);
 		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-			if (parsing(av, envp) == -1)
-	{
-		printf("Error: Parsing failed\n");
-		exit(EXIT_FAILURE);
-	}
+		if (parsing(av, envp) == -1)
+		{
+			exit(127);
+		}
 		pipe(pipex);
 		redirect_process(av, envp, fd, pipex);
 		second_process(av, envp, fd, pipex);
@@ -38,12 +37,12 @@ int	main(int ac, char **av, char **envp)
 	}
 	wait(NULL);
 	wait(NULL);
-	
 }
 
 void	redirect_process(char **av, char **envp, int *fd, int *pipex)
 {
-	pid_t pid;
+	pid_t	pid;
+
 	pid = fork();
 	if (pid)
 	{
@@ -58,9 +57,11 @@ void	redirect_process(char **av, char **envp, int *fd, int *pipex)
 		waitpid(pid, NULL, 0);
 	}
 }
+
 void	second_process(char **av, char **envp, int *fd, int *pipex)
 {
-	pid_t pid;
+	pid_t	pid;
+
 	pid = fork();
 	if (pid)
 	{
@@ -74,28 +75,28 @@ void	second_process(char **av, char **envp, int *fd, int *pipex)
 
 int	parsing(char **argv, char **envp)
 {
-	char	*tmp;
+	char	**tmp;
+	char	*cmd;
 	int		i;
+
 	i = 2;
 	while (i <= 3)
 	{
-		if ((tmp = get_command_path(argv[2], envp)) == NULL)
+		tmp = ft_split(argv[i], ' ');
+		cmd = get_command_path(tmp[0], envp);
+		if (cmd == NULL)
 		{
-			free(tmp);
-			return((ft_putstr_fd("Error: Command not found\n", 2), -1));
+			ft_free_split(tmp);
+			free(cmd);
+			return ((ft_putstr_fd("Error: Command not found\n", 2), -1));
 		}
-		free(tmp);
+		free(cmd);
+		ft_free_split(tmp);
 		i++;
 	}
-		if (access(argv[1], F_OK) == -1)
-		{
-			ft_putstr_fd("Error: File does not exist\n", 2);
-			return (-1);
-		}
-		if (access(argv[4], W_OK) == -1)
-		{
-			ft_putstr_fd("Error: File is not readable\n", 2);
-			return (-1);
-		}
+	if (access(argv[1], F_OK | R_OK) == -1)
+		return ((ft_putstr_fd("Error: File does not exist\n", 2), exit(1), -1));
+	if (access(argv[4], W_OK) == -1)
+		return ((ft_putstr_fd("Error: File is not readable\n", 2), -1));
 	return (0);
-}	
+}
