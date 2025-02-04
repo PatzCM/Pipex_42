@@ -34,7 +34,7 @@ char	*get_command_path(char *cmd, char **envp)
 	{
 		path = ft_strjoin(cmd_paths[i], "/");
 		tmp = ft_strjoin(path, cmd);
-		if (!access(tmp, F_OK))
+		if (!tmp || !access(tmp, F_OK))
 		{
 			free(path);
 			ft_free_split(cmd_paths);
@@ -44,9 +44,9 @@ char	*get_command_path(char *cmd, char **envp)
 		free(tmp);
 		i++;
 	}
-	ft_free_split(cmd_paths);
-	return (NULL);
+	return (ft_free_split(cmd_paths), NULL);
 }
+
 void	ft_free_split(char **str)
 {
 	int	i;

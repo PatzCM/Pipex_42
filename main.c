@@ -22,10 +22,8 @@ int	main(int ac, char **av, char **envp)
 	{
 		fd[0] = open(av[1], O_RDONLY);
 		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-		if (parsing(av, envp) == -1)
-		{
+		if (parsing(av, envp, av[3]) == -1)
 			exit(127);
-		}
 		pipe(pipex);
 		redirect_process(av, envp, fd, pipex);
 		second_process(av, envp, fd, pipex);
@@ -50,7 +48,8 @@ void	redirect_process(char **av, char **envp, int *fd, int *pipex)
 		close(pipex[0]);
 		dup2(fd[0], 0);
 		dup2(pipex[1], 1);
-		run_command(av[2], envp);
+		if (parsing(av, envp, av[2]) != -1)
+			run_command(av[2], envp);
 	}
 	else
 	{
@@ -73,27 +72,20 @@ void	second_process(char **av, char **envp, int *fd, int *pipex)
 	}
 }
 
-int	parsing(char **argv, char **envp)
+int	parsing(char **argv, char **envp, char *cmd)
 {
 	char	**tmp;
-	char	*cmd;
-	int		i;
 
-	i = 2;
-	while (i <= 3)
+	tmp = ft_split(cmd, ' ');
+	cmd = get_command_path(tmp[0], envp);
+	if (cmd == NULL)
 	{
-		tmp = ft_split(argv[i], ' ');
-		cmd = get_command_path(tmp[0], envp);
-		if (cmd == NULL)
-		{
-			ft_free_split(tmp);
-			free(cmd);
-			return ((ft_putstr_fd("Error: Command not found\n", 2), -1));
-		}
-		free(cmd);
 		ft_free_split(tmp);
-		i++;
+		free(cmd);
+		return ((ft_putstr_fd("Error: Command not found\n", 2), -1));
 	}
+	free(cmd);
+	ft_free_split(tmp);
 	if (access(argv[1], F_OK | R_OK) == -1)
 		return ((ft_putstr_fd("Error: File does not exist\n", 2), exit(1), -1));
 	if (access(argv[4], W_OK) == -1)

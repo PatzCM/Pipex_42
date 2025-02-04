@@ -26,6 +26,8 @@ typedef struct s_pipex
 	char	**path;
 	char	*cmd_path;
 	char	**cmd_args;
+	int		*fd;
+	int		*pipex;
 }	t_pipex;
 
 // Function prototypes
@@ -36,5 +38,5 @@ void	ft_free_split(char **str);
 void	run_command(char *cmd, char **envp);
 void	redirect_process(char **av, char **envp, int *fd, int *pipex);
 void	second_process(char **av, char **envp, int *fd, int *pipex);
-int		parsing(char **argv, char **envp);
+int		parsing(char **argv, char **envp, char *cmd);
 #endif
