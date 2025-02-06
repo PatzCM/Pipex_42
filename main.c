@@ -6,7 +6,7 @@
 /*   By: palexand <palexand@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 20:10:10 by palexand          #+#    #+#             */
-/*   Updated: 2025/01/28 21:28:41 by palexand         ###   ########.fr       */
+/*   Updated: 2025/02/06 15:22:37 by palexand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,15 +52,12 @@ void	redirect_process(char **av, char **envp, int *fd, int *pipex)
 			run_command(av[2], envp);
 	}
 	else
-	{
 		waitpid(pid, NULL, 0);
-	}
 }
 
 void	second_process(char **av, char **envp, int *fd, int *pipex)
 {
 	pid_t	pid;
-
 	pid = fork();
 	if (pid)
 	{
@@ -70,6 +67,8 @@ void	second_process(char **av, char **envp, int *fd, int *pipex)
 		dup2(fd[1], 1);
 		run_command(av[3], envp);
 	}
+	else
+		waitpid(pid, NULL, 0);
 }
 
 int	parsing(char **argv, char **envp, char *cmd)
@@ -86,9 +85,9 @@ int	parsing(char **argv, char **envp, char *cmd)
 	}
 	free(cmd);
 	ft_free_split(tmp);
-	if (access(argv[1], F_OK | R_OK) == -1)
-		return ((ft_putstr_fd("Error: File does not exist\n", 2), exit(1), -1));
+	if (access(argv[1], R_OK) == -1)
+		return ((ft_putstr_fd("Error: File is not readable\n", 2), exit(1), -1));
 	if (access(argv[4], W_OK) == -1)
-		return ((ft_putstr_fd("Error: File is not readable\n", 2), -1));
+		return ((ft_putstr_fd("Error: File is not writable\n", 2), -1));
 	return (0);
 }
