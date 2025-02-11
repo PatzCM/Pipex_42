@@ -55,7 +55,8 @@ INCLUDES = -I includes
 #
 SRCDIR = srcs
 
-SRCS = main.c utils.c 
+SRCS = main.c \
+      #utils.c 
 
 OBJS = $(SRCS:.c=.o)
 
