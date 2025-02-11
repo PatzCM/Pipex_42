@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <fcntl.h>
 
 int	main(int ac, char **av, char **envp)
 {
@@ -108,16 +109,16 @@ int	parsing_input(t_pipex	**pipex, char **av, char **envp, int size)
 	int	i;
 	char	**path;
 
-	i = -1;
+	i = 0;
 	if (size != 5)
 		error_exit(pipex, "ERROR");
 	if (access(av[1], R_OK) == -1)
 		error_exit(pipex, "ERROR");
 	if (av[1] == NULL || av[2] ==	NULL)
 		error_exit(pipex, "ERROR");
-	while(envp[++i])
-		if (ft_strnstr(envp[i], "PATH=", 5))
-			path = ft_split(&envp[i][5], ':');
+	while (envp[i] && !ft_strnstr(envp[i], "PATH=", 5))
+			i++;	
+	path = ft_split(envp[i] + 5, ':');
 	if (!path)
 		return(error_exit(pipex, "ERROR"));
 	return(set_commands(pipex, av, path, size));
@@ -136,19 +137,23 @@ int	set_commands(t_pipex **pipex, char **av, char **path, int size)
 	n = 0;
 	while(path[++j] && i + n < size - 1)
 	{
+		
 		tmp2 = ft_substr(av[i + n], 0, (ft_strchrlen(av[i + n], ' ')));
 		(*pipex)->cmd[n] = ft_strdup(av[i + n]);
 		(*pipex)->path[n] = ft_strjoin(path[j], "/");
 		(*pipex)->path[n] = ft_strjoin((*pipex)->path[n], tmp2);
-		if (access((*pipex)->path[n], O_DIRECTORY) == -1 
-			&& open((*pipex)->path[n], F_OK != -1) && ++n)
+		ft_printf("path[%d]: %s\n", n, (*pipex)->path[n]);
+		ft_printf("j: %d\n", j);
+		if (access((*pipex)->path[n], F_OK) != -1 
+			&& open((*pipex)->path[n], O_DIRECTORY) == -1
+			&&++n)
 			j = -1;
-		free_loop(tmp2, (*pipex)->cmd, (*pipex)->path, j);	
+		free_loop(tmp2, &(*pipex)->cmd[n], &(*pipex)->path[n], j);	
 	}
 	free_path(path);
-	ft_printf("path = %s\n", (*pipex)->path[i - 1]);
-	ft_printf("access = %d\n", access((*pipex)->path[i - 1], F_OK));
-	if (!(*pipex)->path[i - 1] || access((*pipex)->path[i - 1], F_OK != -1))
+	ft_printf("path[0]: %s\n", (*pipex)->path[0]);
+	ft_printf("path[1]: %s\n", (*pipex)->path[1]);
+	if (!(*pipex)->path[i - 1] || access((*pipex)->path[i - 1], F_OK == -1))
 		return(0);
 	return (i == n);
 }
@@ -166,17 +171,15 @@ void	free_loop(char *s, char **cmd, char **path, int j)
 {
 	if (s)
 		free(s);
-	if (j != -1 && path)
+	if (j != -1 && *path)
 	{
-		while (j--)
-			free(path[j]);
-		free(path);
+		free(*path);
+		*path = NULL;
 	}
-	if (j != -1 && cmd)
+	if (j != -1 && *cmd)
 	{
-		while (j--)
-			free(cmd[j]);
-		free(cmd);
+		free(*cmd);
+		*cmd = NULL;
 	}
 }
 

@@ -12,7 +12,7 @@
 
 #include "pipex.h"
 
-void	error_exit(const char *message, int number)
+int	error_exit(const char *message, int number)
 {
 	perror(message);
 	exit(number);
@@ -36,7 +36,7 @@ char	*get_command_path(char *cmd, char **envp)
 	{
 		path = ft_strjoin(cmd_paths[i], "/");
 		tmp = ft_strjoin(path, cmd);
-		if (!tmp || !access(tmp, F_OK))
+		if (!access(tmp, F_OK))
 			return (free(path), ft_free_split(cmd_paths), tmp);
 		free(path);
 		free(tmp);
@@ -62,7 +62,6 @@ void	run_command(char *cmd, char **envp)
 {
 	char	*cmd_path;
 	char	**path;
-	char	*tmp;	
 
 	path = ft_split(cmd, ' ');
 	cmd_path = get_command_path(path[0], envp);
@@ -80,5 +79,4 @@ void	run_command(char *cmd, char **envp)
 	}
 	free(cmd_path);
 	ft_free_split(path);
-	error_exit(0, 0);
 }
