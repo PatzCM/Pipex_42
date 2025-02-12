@@ -43,36 +43,29 @@ int	second_process(t_pipex **pipex, char **envp, int *fd, pid_t *pid)
 	pid[0] = fork();
 	if (pid[0] == -1)
 		error_exit(pipex, "ERROR");
-	if (pid[0] > 0)
-		{
-		ft_printf("pid[0] = %d\n", pid[0]);
-		waitpid(pid[0], NULL, 0);
-		/*close(fd[0]);*/
-		/*dup2(fd[1], STDOUT_FILENO);*/
-		/*close(fd[1]);*/
-		/*run_command(pipex, 0, envp);*/
-		}
 	if (pid[0] == 0)
-	{
-		ft_printf("pid[0] = %d\n", pid[0]);
-		dup2(fd[1], STDOUT_FILENO);
+		{
 		close(fd[0]);
+		dup2((*pipex)->fd_in, STDIN_FILENO);
+		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
 		run_command(pipex, 0, envp);
 	}
+	close(fd[1]);
+	waitpid(pid[0], NULL, 0);
+
 	pid[1] = fork();
 	if (pid[1] == -1)
 		error_exit(pipex, "ERROR");
 	if (pid[1] == 0)
-		waitpid(pid[1], NULL, 0);
-	if (pid[1] > 0)
 		{
-		ft_printf("pid[1] = %d\n", pid[1]);
 		dup2(fd[0], STDIN_FILENO);
+		dup2((*pipex)->fd_out, STDOUT_FILENO);
 		close(fd[0]);
-		close(fd[1]);
 		run_command(pipex, 1, envp);
-		}
+	}
+	close(fd[0]);
+	waitpid(pid[1], NULL, 0);
 	return(0);
 }
 
@@ -82,8 +75,10 @@ void	run_command(t_pipex **pipex, int index, char **envp)
 	temp = ft_split((*pipex)->cmd[index], ' ');
 	if (!temp)
 		error_exit(pipex, "ERROR");
-	ft_printf("path = %s\n", (*pipex)->path[index]);
 	execve((*pipex)->path[index], temp, envp);
+	perror("ERROR");
+	free_split(temp);
+	exit(1);
 }
 
 void	init_pipex(t_pipex **pipex)
@@ -114,9 +109,22 @@ int	error_exit(t_pipex **pipex, char *error)
 	free(*pipex);
 	if (error != NULL)
 		perror(error);
-	return (1);
+	/*return (1);*/
+	exit(1);
 }
 
+void free_split(char **str)
+{
+    int i;
+
+    i = 0;
+    while (str[i])
+    {
+        free(str[i]);
+        i++;
+    }
+    free(str);
+}
 int	parsing_input(t_pipex	**pipex, char **av, char **envp, int size)
 {
 	int	i;
@@ -161,7 +169,6 @@ int	set_commands(t_pipex **pipex, char **av, char **path, int size)
 		if (path[j + 1] == NULL && n == 0 && access((*pipex)->path[n], F_OK) == -1 && ++n)
 			j = -1;	
 		free_loop(tmp2, &(*pipex)->cmd[n], &(*pipex)->path[n], j);
-
 	}
 	free_path(path);
 	if (!(*pipex)->path[i - 1] || access((*pipex)->path[i - 1], F_OK == -1))

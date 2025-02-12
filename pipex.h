@@ -37,7 +37,7 @@ int	parsing_input(t_pipex	**pipex, char **av, char **envp, int size);
 void	run_command(t_pipex **pipex, int index, char **envp);
 
 int	error_exit(t_pipex **pipex, char *error);
-void	ft_free_split(char **str);
+void	free_split(char **str);
 int	redirect_process(t_pipex **pipex, char **envp);
 int	second_process(t_pipex **pipex, char **envp, int *fd, pid_t *pid);
 void	init_pipex(t_pipex **pipex);
