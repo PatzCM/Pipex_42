@@ -27,9 +27,6 @@ int	set_commands(t_pipex **pipex, char **av, char **path, int size)
 
 	while(path[++j] && i + n < size - 1)
 	{
-		ft_printf("Error checks are needed here\n");
-		ft_printf("When first command is invalid, we have memory leaks\n");
-		ft_printf("Check valgrind\n");
 		tmp2 = ft_substr(av[i + n], 0, (ft_strchrlen(av[i + n], ' ')));
 		(*pipex)->cmd[n] = ft_strdup(av[i + n]);
 		magic = ft_strjoin(path[j], "/");
@@ -37,7 +34,8 @@ int	set_commands(t_pipex **pipex, char **av, char **path, int size)
 		free(magic);
 		if (path[j + 1] == NULL && n == 0 && access((*pipex)->path[n], F_OK) == -1 && ++n)
 			j = -1;
-		if (access((*pipex)->path[n], F_OK) != -1 
+		ft_printf("path[%d] = %s\n", n, (*pipex)->path[n]);
+		if ((*pipex)->path[n] && access((*pipex)->path[n], F_OK) != -1 
 			&& open((*pipex)->path[n], O_DIRECTORY) == -1
 			&& ++n)
 			j = -1;
@@ -48,13 +46,14 @@ int	set_commands(t_pipex **pipex, char **av, char **path, int size)
 		return(0);
 	return (i == n);
 }
+
 void	free_path(char **path)
 {
 	int	j;
 
-	j = 0;
-	while(path[j])
-		free(path[j++]);
+	j = -1;
+	while(path[++j])
+		free(path[j]);
 	free(path);
 }
 

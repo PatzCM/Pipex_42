@@ -22,12 +22,10 @@ int	main(int ac, char **av, char **envp)
 	if (parsing_input(&pipex, av, envp, ac) == 0)
 		return(error_exit(&pipex, "ERROR"));
 	pipex->fd_in = open(av[1], O_RDONLY);
-	if (av[4][0] != '\0' && (access(av[4], F_OK) || !access(av[4], R_OK)))
-		pipex->fd_out = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	else if (access(av[4], F_OK))
+	if (!access(av[4], F_OK) && (access(av[4], W_OK) == -1))
 		return(error_exit(&pipex, "ERROR"));
-	else
-		return (error_exit(&pipex, "ERROR"));
+	else if (av[4][0] != '\0')
+		pipex->fd_out = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	dup2(pipex->fd_in, STDIN_FILENO);
 	dup2(pipex->fd_out, STDOUT_FILENO);
 	redirect_process(&pipex, envp);
@@ -81,13 +79,13 @@ int	second_process(t_pipex **pipex, char **envp, int *fd, pid_t *pid)
 void	run_command(t_pipex **pipex, int index, char **envp)
 {
 	char	**temp;
+
 	temp = ft_split((*pipex)->cmd[index], ' ');
 	if (!temp)
 		error_exit(pipex, "ERROR");
 	execve((*pipex)->path[index], temp, envp);
-	perror("ERROR");
 	free_split(temp);
-	exit(1);
+	error_exit(pipex, NULL);
 }
 
 void	init_pipex(t_pipex **pipex)
@@ -118,7 +116,6 @@ int	error_exit(t_pipex **pipex, char *error)
 	free(*pipex);
 	if (error != NULL)
 		perror(error);
-	/*return (1);*/
 	exit(1);
 }
 
@@ -134,11 +131,13 @@ void free_split(char **str)
     }
     free(str);
 }
+
 int	parsing_input(t_pipex	**pipex, char **av, char **envp, int size)
 {
 	int	i;
 	char	**path;
 
+	path = NULL;
 	i = 0;
 	if (size != 5)
 		error_exit(pipex, "ERROR");
@@ -147,7 +146,9 @@ int	parsing_input(t_pipex	**pipex, char **av, char **envp, int size)
 	if (av[1] == NULL || av[2] ==	NULL)
 		error_exit(pipex, "ERROR");
 	while (envp[i] && !ft_strnstr(envp[i], "PATH=", 5))
-			i++;	
+			i++;
+	if (!envp[i])
+		return (error_exit(pipex, "ERROR"));
 	path = ft_split(envp[i] + 5, ':');
 	if (!path)
 		return(error_exit(pipex, "ERROR"));
